@@ -1,10 +1,16 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState} from 'react';
+import queryString from 'query-string'
 import './registration.scss'
+import { Redirect }  from "react-router-dom";
 import Message from './../components/Message'
-import { socket } from './../socket'
+import { socketClient } from './../socket'
 
-function Chat() {
+function Chat({location}) {
 	var chatContainer = useRef();
+	const parsed = queryString.parse(location.search);
+    const [user, setUser] = useState(socketClient.getUser());
+
+	useEffect(() => console.log("Loged in user",user), []);
 
 	function scrollToMyRef() {
 		try {
@@ -17,6 +23,10 @@ function Chat() {
 		}
 	};
 	
+	if (!user) {
+		return <Redirect to="/" />
+	}
+
 	return (
 		<div id="frame">
 			<div id="sidepanel">
@@ -32,14 +42,6 @@ function Chat() {
 								<li id="status-busy"><span className="status-circle"></span> <p>Busy</p></li>
 								<li id="status-offline"><span className="status-circle"></span> <p>Offline</p></li>
 							</ul>
-						</div>
-						<div id="expanded">
-							<label htmlFor="twitter"><i className="fa fa-facebook fa-fw" aria-hidden="true"></i></label>
-							<input name="twitter" type="text" value="mikeross" />
-							<label htmlFor="twitter"><i className="fa fa-twitter fa-fw" aria-hidden="true"></i></label>
-							<input name="twitter" type="text" value="ross81" />
-							<label htmlFor="twitter"><i className="fa fa-instagram fa-fw" aria-hidden="true"></i></label>
-							<input name="twitter" type="text" value="mike.ross" />
 						</div>
 					</div>
 				</div>
@@ -74,7 +76,7 @@ function Chat() {
 				</div>
 				<div id="bottom-bar">
 					<button id="addcontact"><i className="fa fa-user-plus fa-fw" aria-hidden="true"></i> <span>Add contact</span></button>
-					<button id="settings"><i className="fa fa-cog fa-fw" aria-hidden="true"></i> <span>Settings</span></button>
+					<button id="settings"><i className="fa fa-commenting-o" aria-hidden="true"></i> <span>Start chatting</span></button>
 				</div>
 			</div>
 			<div className="content">
@@ -89,8 +91,8 @@ function Chat() {
 				</div>
 				<div ref={chatContainer} className="messages">
 					<ul>
-						<Message text={"I am sayaf"} type={"sent"}/>
-						<Message text={"I am Mojnu"} type={"replies"}/>
+						<Message text={"I am sayaf"} type={"sent"} />
+						<Message text={"I am Mojnu"} type={"replies"} />
 					</ul>
 					<p className="type-indicator">Typing ...</p>
 				</div>
