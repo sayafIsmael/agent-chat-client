@@ -1,6 +1,23 @@
 .type-indicator {
     position: absolute;
     bottom: 49px;
-    right: 233px;
+    left: 20px;
     font-size: 12px;
 }
+
+.d-none{
+    display: none;
+}
+
+.chat-btn{
+    position: relative;
+    right: 10px;
+    float: right;
+    bottom: 11px;
+}
+
+.chat-btn-accept{
+    position: relative;
+    right: 10px;
+    float: right;
+    bottom: 29px;}

@@ -14,8 +14,8 @@ body {
   }
   
   #frame {
-    width: 95%;
-    min-width: 360px;
+    width: 100%;
+    min-width: 621px;
     max-width: 1000px;
     height: 92vh;
     min-height: 300px;
@@ -354,6 +354,7 @@ body {
     padding: 10px 0 15px 0;
     font-size: 0.9em;
     cursor: pointer;
+    margin-bottom: 8px;
   }
   @media screen and (max-width: 735px) {
     #frame #sidepanel #contacts ul li.contact {
@@ -546,6 +547,7 @@ body {
     max-height: calc(100% - 93px);
     overflow-y: scroll;
     overflow-x: hidden;
+    width: 100%;
   }
   @media screen and (max-width: 735px) {
     #frame .content .messages {

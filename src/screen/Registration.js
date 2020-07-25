@@ -2,30 +2,35 @@ import React, { useState, useEffect } from 'react';
 import { socket, socketClient } from './../socket'
 import axios from 'axios'
 import './registration.scss'
-const baseurl = `http://localhost:5000`;
-
+import { baseurl } from './../env'
 
 function Registration({ history }) {
-    const [name, setName] = useState('');
+    const [name, setName] = useState("sifat");
     const [type, setType] = useState('agent');
     // const [socketId, setSocketId] = useState(socketClient.getSocketId());
     const [topic, setTopic] = useState('');
-   
+
     async function joinToChat() {
         let socketId = socketClient.getSocketId()
         let user
-        if (type == 'agent') {
-            user = { name, type, status: "free", socketId };
+        if (name && type && socketId) {
+            if (type == 'agent') {
+                user = { name, type, status: "free", socketId };
+            } else {
+                user = { name, type, status: "free", socketId, topic };
+            }
+            let response = await axios.post(`${baseurl}/join`, user);
+            let data = response.data;
+            socketClient.setUser(user)
+            if (data.success) {
+                localStorage.setItem('user', JSON.stringify(user))
+                history.push('/chat?login=true')
+            }
+            console.log("Join reqst response", data)
         }else{
-            user = { name, type, status: "free", socketId, topic };
+            alert('Please input all field')
         }
-        let response = await axios.post(`${baseurl}/join`, user);
-        let data = response.data;
-        socketClient.setUser(user)
-        if (data.success) {
-            history.push('/chat?login=true')
-        }
-        console.log("Join reqst response", data)
+
     }
 
     return (
