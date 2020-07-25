@@ -154,6 +154,7 @@ function Chat({ location, requests, cancelRequest, addRequest }) {
 	function handleKeyDown(e) {
 		if (e.keyCode == 13) {
 			sendMessage()
+			typingReq(false)
 		}
 	}
 
