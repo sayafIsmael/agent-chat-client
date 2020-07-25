@@ -15,7 +15,7 @@ body {
   
   #frame {
     width: 100%;
-    min-width: 621px;
+    max-width: 621px;
     max-width: 1000px;
     height: 92vh;
     min-height: 300px;
@@ -41,8 +41,8 @@ body {
   }
   @media screen and (max-width: 735px) {
     #frame #sidepanel {
-      width: 58px;
-      min-width: 58px;
+      /* width: 58px;
+      min-width: 58px; */
     }
   }
   #frame #sidepanel #profile {
@@ -497,7 +497,7 @@ body {
   }
   #frame .content {
     float: right;
-    width: 51%;
+    min-width: 414px;
     height: 100%;
     overflow: hidden;
     position: relative;

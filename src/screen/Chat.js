@@ -1,25 +1,38 @@
 import React, { useRef, useEffect, useState } from 'react';
 import queryString from 'query-string'
+import PropTypes from "prop-types";
+import {
+	cancelRequest,
+	addRequest
+} from "../actions/chatActions";
+import { connect } from "react-redux";
+import axios from 'axios'
 import './registration.scss'
+import { baseurl } from './../env'
 import { Redirect } from "react-router-dom";
 import Message from './../components/Message'
 import { socket, socketClient } from './../socket'
 import { getAvilableAgent, getAvilableCustomer } from "./ChatServices";
 import ActiveUser from './../components/ActiveUser'
 
-function Chat({ location }) {
+function Chat({ location, requests, cancelRequest, addRequest }) {
 	var chatContainer = useRef();
 	const parsed = queryString.parse(location.search);
 	const [user, setUser] = useState(socketClient.getUser());
 	const [userType, setUserType] = useState('');
-	const [chatting, setChatting] = useState(socketClient.getChatting());
+	const [text, setText] = useState('');
+	const [typing, setTyping] = useState(false);
+	const [messages, setMessages] = useState([]);
+	const [chatting, setChatting] = useState();
 	const [chattingWith, setChattingWith] = useState("");
+	const [recepientId, setRecepientId] = useState(null);
+	const [recepientAvatar, setRecepientAvatar] = useState(null);
 	const [availableUsers, setAvailableUsers] = useState([]);
-	const [chatrequests, setChatrequests] = useState([]);
 
 	useEffect(() => {
 		let localUser = localStorage.getItem('user')
 		setUserType(JSON.parse(localUser))
+		cancelRequest([])
 	}, []);
 
 	async function refreshData() {
@@ -28,12 +41,12 @@ function Chat({ location }) {
 				setAvailableUsers(await getAvilableCustomer());
 				setInterval(async function () {
 					setAvailableUsers(await getAvilableCustomer());
-				}, 3000);
+				}, 1000);
 			} else if (user.type == "customer") {
 				setAvailableUsers(await getAvilableAgent())
 				setInterval(async function () {
 					setAvailableUsers(await getAvilableAgent())
-				}, 3000);
+				}, 1000);
 			}
 		} catch (error) {
 			console.log(error)
@@ -45,25 +58,46 @@ function Chat({ location }) {
 	}, []);
 
 	useEffect(() => {
+		socket.on("greetings", (data) => {
+			setChattingWith(data.name)
+			setRecepientId(data.socketId)
+			setRecepientAvatar(data.image)
+			setChatting(true)
+		});
+	}, []);
+
+	useEffect(() => {
 		socket.on("chatReq", (data) => {
-			chatrequests.push(data)
+			addRequest(data)
 			console.log("Notification", data);
 		});
 	}, [])
-	
-	// useEffect(() => {
-	// 	socket.on("cancelReq", (socketId) => {
-	// 		// let newList = chatrequests.filter(chatreq => chatreq.socketId != socketId)
-	// 		// console.log("New list", newList);
-	// 		setChatrequests(chatrequests.filter(chatreq => chatreq.socketId !== socketId))
-	// 		// chatrequests.pop()
-	// 		console.log("Last ID from server: ", socketId);
+
+	useEffect(() => {
+		socket.on("typing", (data) => {
+			setTyping(data)
+			console.log("typing: ", data);
+		});
+	}, [])
 
 
-	// 	});
-	// }, [chatrequests])
+	useEffect(() => {
+		socket.on("message", (data) => {
+			messages.push(data)
+			console.log("Message", data);
+		});
+	}, [])
 
-	function sendRequest (){
+	useEffect(() => {
+		socket.on("cancelReq", (socketId) => {
+			let newList = requests.filter(chatreq => chatreq.socketId != socketId)
+			console.log("New list", newList);
+			cancelRequest(newList)
+			console.log("Last ID from server: ", socketId);
+		});
+	}, [])
+
+	function sendRequest() {
 		socketClient.createRequest((data) => console.log(data))
 	}
 
@@ -83,18 +117,55 @@ function Chat({ location }) {
 	}
 
 
-	function chat(name) {
+	async function chat(customer) {
+		let { name, socketId, image } = customer
 		setChatting(true)
 		setChattingWith(name)
+		setRecepientId(socketId)
+		setRecepientAvatar(image)
+
+		// setMessages([])
+		let agent = user
+		agent.status = "busy"
+		let postData = { customerId: socketId, agent };
+		await axios.post(`${baseurl}/cancel-request-prev`, { customerId: socketId, agentId: socketClient.getSocketId() });
+		let response = await axios.post(
+			`${baseurl}/accept-request`,
+			postData
+		);
+		let data = response.data;
+		console.log(data);
 	}
 
-function checkReqstExist(socketId) {
-		let exist = chatrequests.filter(chatreq => chatreq.socketId === socketId)
-		console.log("kkkkkkkkk", exist.length)
-		if (exist.length) {
-			return true
-		} else {
-			return false
+	async function typingReq(typing) {
+		await axios.post(`${baseurl}/typing`, { typing, toId: recepientId });
+	}
+
+	function handleMessageeInput(e) {
+		setText(e.target.value)
+		if (e.which != 13) {
+			typingReq(true)
+		}
+		if (e.target.value == "") {
+			typingReq(false)
+		}
+	}
+
+	function handleKeyDown(e) {
+		if (e.keyCode == 13) {
+			sendMessage()
+		}
+	}
+
+	async function sendMessage() {
+		let response = await axios.post(`${baseurl}/sendmessage`, {
+			from: user.socketId,
+			to: recepientId,
+			text,
+			time: new Date(),
+		});
+		if (response.data.success) {
+			setText('')
 		}
 	}
 
@@ -103,8 +174,8 @@ function checkReqstExist(socketId) {
 			<div id="sidepanel">
 				<div id="profile">
 					<div className="wrap">
-						<img id="profile-img" src="http://emilcarlsson.se/assets/mikeross.png" className="online" alt="" />
-						<p>{user.name}</p>
+						<img id="profile-img" src={user.image} className="online" alt="" style={{ width: 50, height: 50 }} />
+						<p>{user.name} {user.type}</p>
 					</div>
 				</div>
 
@@ -115,41 +186,66 @@ function checkReqstExist(socketId) {
 				</div>
 				<div id="contacts">
 					{availableUsers.map((user, i) => {
-						return (<ActiveUser key={i} name={user.name} chat={() => chat(user.name)} />)
+						return (<ActiveUser avatar={user.image} key={i} name={user.name} chat={() => chat(user)} />)
 					})}
-					{[...chatrequests].map((user, i) => {
-						return (<ActiveUser key={i} name={user.name} chat={() => chat(user.name)} type="chatreq" />)
+					{requests.map((user, i) => {
+						return (<ActiveUser avatar={user.image} key={i} name={user.name} chat={() => chat(user)} type="chatreq" />)
 					})}
 				</div>
-				<p>No user is active now..</p>
 
 				<div id="bottom-bar">
-					<button id="addcontact" onClick={()=> sendRequest()}><i className="fa fa-user-plus fa-fw" aria-hidden="true"></i> <span>Start chat</span></button>
-					<button id="settings"><i className="fa fa-commenting-o" aria-hidden="true"></i> <span>Start chatting</span></button>
+					{user.type == "customer" && !chatting && <button id="addcontact" onClick={() => sendRequest()}><i className="fa fa-user-plus fa-fw" aria-hidden="true"></i> <span>Send Chat request</span></button>
+					}					<button id="settings"><i className="fa fa-commenting-o" aria-hidden="true"></i> <span></span></button>
 				</div>
 			</div>
 			<div className={`content ${chatting ? '' : 'd-none'}`}>
 				<div className="contact-profile">
-					<img src="http://emilcarlsson.se/assets/harveyspecter.png" alt="" />
+					<img src={recepientAvatar} alt="" style={{ width: 40, height: 40 }} />
 					<p>{chattingWith}</p>
 				</div>
 				<div ref={chatContainer} className="messages">
 					<ul>
-						<Message text={"I am sayaf"} type={"sent"} />
-						<Message text={"I am Mojnu"} type={"replies"} />
+						{messages.map((message, i) => {
+							return <Message key={i}
+								avatar={recepientAvatar}
+								date={message.date}
+								text={message.text}
+								type={`${socketClient.getSocketId() === message.from ? "sent" : "replies"}`} />
+						})}
+						{/* <Message text={"I am sayaf"} type={"sent"} /> */}
+						{/* <Message text={"I am Mojnu"} type={"replies"} /> */}
 					</ul>
-					<p className="type-indicator">Typing ...</p>
+					{typing && <p className="type-indicator">Typing ...</p>}
 				</div>
 				<div className="message-input">
 					<div className="wrap">
-						<input type="text" placeholder="Write your message..." />
+						<input onBlur={() => typingReq(false)}
+							onKeyDown={(e) => handleKeyDown(e)}
+							type="text" value={text} placeholder="Write your message..."
+							onChange={(e) => handleMessageeInput(e)} />
 						<i className="fa fa-paperclip attachment" aria-hidden="true"></i>
-						<button className="submit"><i className="fa fa-paper-plane" aria-hidden="true"></i></button>
+						<button className="submit"
+							onClick={() => sendMessage()}
+						><i className="fa fa-paper-plane" aria-hidden="true"></i></button>
 					</div>
 				</div>
 			</div>
 		</div>
 	);
+
 }
 
-export default Chat;
+
+Chat.propTypes = {
+	cancelRequest: PropTypes.func.isRequired,
+	addRequest: PropTypes.func.isRequired,
+};
+
+const mapStateToProps = state => ({
+	requests: state.chat.requests,
+});
+
+export default connect(
+	mapStateToProps,
+	{ cancelRequest, addRequest }
+)(Chat);

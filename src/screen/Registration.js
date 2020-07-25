@@ -7,6 +7,7 @@ import { baseurl } from './../env'
 function Registration({ history }) {
     const [name, setName] = useState("sifat");
     const [type, setType] = useState('agent');
+    const [image, setImage] = useState();
     // const [socketId, setSocketId] = useState(socketClient.getSocketId());
     const [topic, setTopic] = useState('');
 
@@ -15,9 +16,9 @@ function Registration({ history }) {
         let user
         if (name && type && socketId) {
             if (type == 'agent') {
-                user = { name, type, status: "free", socketId };
+                user = { name, type, status: "free", socketId, image };
             } else {
-                user = { name, type, status: "free", socketId, topic };
+                user = { name, type, status: "free", socketId, topic, image };
             }
             let response = await axios.post(`${baseurl}/join`, user);
             let data = response.data;
@@ -27,10 +28,14 @@ function Registration({ history }) {
                 history.push('/chat?login=true')
             }
             console.log("Join reqst response", data)
-        }else{
+        } else {
             alert('Please input all field')
         }
 
+    }
+
+    function handleChangeImage(event) {
+        setImage(URL.createObjectURL(event.target.files[0]));
     }
 
     return (
@@ -39,6 +44,11 @@ function Registration({ history }) {
             <div className="card p-5">
 
                 <form>
+                    <div className="form-group">
+                        <input type="file" onChange={handleChangeImage} />
+                        <img src={image} style={{width: 100}}
+                        />
+                    </div>
                     <div className="form-group">
                         <label htmlFor="exampleFormControlInput1">Name</label>
                         <input
@@ -57,12 +67,12 @@ function Registration({ history }) {
                             <option value="customer">Customer</option>
                         </select>
                     </div>
-                    <div className={`form-group ${type == 'agent' ? 'd-none' : ''}`}>
+                    {/* <div className={`form-group ${type == 'agent' ? 'd-none' : ''}`}>
                         <label htmlFor="exampleFormControlInput1">Topic</label>
                         <input
                             onChange={(e) => setTopic(e.target.value)}
                             type="email" className="form-control" id="exampleFormControlInput1" placeholder="topic" />
-                    </div>
+                    </div> */}
                     <button type="button" className="btn btn-outline-secondary" style={{ width: '100%' }}
                         onClick={() => joinToChat()}
                     >Join</button>
