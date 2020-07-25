@@ -68,11 +68,21 @@ class SocketService {
         let interval = 3000
         let user = { name: "Customer sayaf", socketId: this.socketId };
         let res = await axios.post(`${baseurl}/send-request-next`, user);
+        setTimeout(async function () {
+            let response = await axios.post(`${baseurl}/cancel-request-prev`, { customerId: this.socketId, agentId: res.data.socketId });
+            console.log(`Cancel req data: ${JSON.stringify({ customerId: this.socketId, agentId: res.data.socketId })}`)
+            console.log(response.data);
+        }, 5000);
         this.sendRequest = setInterval(async () => {
             let response = await axios.post(`${baseurl}/send-request-next`, user);
             console.log(response);
             let { socketId, message } = response.data
             console.log(message, socketId);
+            setTimeout(async function () {
+                let cancelres = await axios.post(`${baseurl}/cancel-request-prev`, { customerId: this.socketId, agentId: socketId });
+                console.log(`Cancel req data: ${JSON.stringify({ customerId: this.socketId, agentId: socketId })}`)
+                console.log(cancelres.data);
+            }, 5000);
             if (!socketId) {
                 this.stopSendingReqst();
                 return
