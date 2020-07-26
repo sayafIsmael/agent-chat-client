@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import queryString from 'query-string'
+// import queryString from 'query-string'
 import PropTypes from "prop-types";
 import {
 	cancelRequest,
@@ -17,7 +17,7 @@ import ActiveUser from './../components/ActiveUser'
 
 function Chat({ location, requests, cancelRequest, addRequest }) {
 	var chatContainer = useRef();
-	const parsed = queryString.parse(location.search);
+	// const parsed = queryString.parse(location.search);
 	const [user, setUser] = useState(socketClient.getUser());
 	const [userType, setUserType] = useState('');
 	const [text, setText] = useState('');
@@ -176,7 +176,7 @@ function Chat({ location, requests, cancelRequest, addRequest }) {
 				<div id="profile">
 					<div className="wrap">
 						<img id="profile-img" src={user.image} className="online" alt="" style={{ width: 50, height: 50 }} />
-						<p>{user.name} {user.type}</p>
+						<p>{user.name} : {user.type}</p>
 					</div>
 				</div>
 
@@ -208,7 +208,7 @@ function Chat({ location, requests, cancelRequest, addRequest }) {
 					<ul>
 						{messages.map((message, i) => {
 							return <Message key={i}
-								avatar={recepientAvatar}
+								avatar={`${socketClient.getSocketId() === message.from ? user.image : recepientAvatar}`}
 								date={message.date}
 								text={message.text}
 								type={`${socketClient.getSocketId() === message.from ? "sent" : "replies"}`} />
@@ -218,7 +218,8 @@ function Chat({ location, requests, cancelRequest, addRequest }) {
 					</ul>
 					{/* {typing &&  <p className="type-indicator">Typing ...</p>} */}
 				</div>
-				{typing &&  <img src="gif/tying.gif" className={"typing"}/>}
+				{typing && <img src={recepientAvatar} alt="" className="typing-avatar" />}
+				{typing && <img src="gif/tying.gif" className={"typing"} />}
 				<div className="message-input">
 					<div className="wrap">
 						<input onBlur={() => typingReq(false)}

@@ -25,7 +25,7 @@ function Registration({ history }) {
             socketClient.setUser(user)
             if (data.success) {
                 localStorage.setItem('user', JSON.stringify(user))
-                history.push('/chat?login=true')
+                history.push('/chat')
             }
             console.log("Join reqst response", data)
         } else {

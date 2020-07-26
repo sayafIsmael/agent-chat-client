@@ -504,7 +504,7 @@ body {
   }
   @media screen and (max-width: 735px) {
     #frame .content {
-      width: calc(100% - 58px);
+      width: calc(100% - 281px);
       min-width: 300px !important;
     }
   }

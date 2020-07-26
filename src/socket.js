@@ -65,7 +65,7 @@ class SocketService {
     }
 
     async createRequest(callback) {
-        let interval = 20000
+        let interval = 5000
         let user = this.user;
         let res = await axios.post(`${baseurl}/send-request-next`, user);
         setTimeout(async function () {
