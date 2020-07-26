@@ -216,8 +216,9 @@ function Chat({ location, requests, cancelRequest, addRequest }) {
 						{/* <Message text={"I am sayaf"} type={"sent"} /> */}
 						{/* <Message text={"I am Mojnu"} type={"replies"} /> */}
 					</ul>
-					{typing && <p className="type-indicator">Typing ...</p>}
+					{/* {typing &&  <p className="type-indicator">Typing ...</p>} */}
 				</div>
+				{typing &&  <img src="gif/tying.gif" className={"typing"}/>}
 				<div className="message-input">
 					<div className="wrap">
 						<input onBlur={() => typingReq(false)}

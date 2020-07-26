@@ -17,11 +17,16 @@ export default function (state = initialState, action) {
 
         case ADD_REQ:
             let requests = state.requests
-            requests.push(action.payload)
-            return {
-                ...state,
-                requests
-            };
+            let reqExist = requests.filter(req => req.socketId === action.payload.socketId)
+            if (!reqExist.length) {
+                requests.push(action.payload)
+                return {
+                    ...state,
+                    requests
+                };
+            }
+            return state
+
         default:
             return state;
     }

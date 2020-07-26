@@ -1,23 +1,33 @@
 .type-indicator {
-    position: absolute;
-    bottom: 49px;
-    left: 20px;
-    font-size: 12px;
+  position: absolute;
+  bottom: 49px;
+  left: 20px;
+  font-size: 12px;
 }
 
-.d-none{
-    display: none;
+.d-none {
+  display: none;
 }
 
-.chat-btn{
-    position: relative;
-    right: 10px;
-    float: right;
-    bottom: 11px;
+.chat-btn {
+  position: relative;
+  right: 10px;
+  float: right;
+  bottom: 11px;
 }
 
-.chat-btn-accept{
-    position: relative;
-    right: 10px;
-    float: right;
-    bottom: 29px;}
+.chat-btn-accept {
+  position: relative;
+  right: 10px;
+  float: right;
+  bottom: 29px;
+}
+
+.typing {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  position: absolute;
+  bottom: 47px;
+  margin-left: 14px;
+}
